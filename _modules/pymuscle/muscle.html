@@ -34,6 +34,8 @@
             
   <h1>Source code for pymuscle.muscle</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.potvin_fiber_model</span> <span class="k">import</span> <span class="n">PotvinMuscleFiberModel</span>
+<span class="kn">from</span> <span class="nn">.potvin_motor_neuron_pool</span> <span class="k">import</span> <span class="n">PotvinMotorNeuronPool</span>
 
 
 <span class="k">class</span> <span class="nc">Space</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -59,16 +61,19 @@
 
 <span class="sd">    Usage::</span>
 
-<span class="sd">      &gt;&gt;&gt; from pymuscle import Muscle</span>
-<span class="sd">      &gt;&gt;&gt; muscle = Muscle(60)</span>
-<span class="sd">      &gt;&gt;&gt; input = np.rand(60,1)</span>
-<span class="sd">      &gt;&gt;&gt; muscle.step(input, 1 / 50)</span>
+<span class="sd">      from pymuscle import Muscle</span>
+<span class="sd">      muscle = Muscle(60)</span>
+<span class="sd">      input = np.rand(60,1)</span>
+<span class="sd">      muscle.step(input, 1 / 50)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_unit_count</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_space</span> <span class="o">=</span> <span class="n">Space</span><span class="p">([</span><span class="n">motor_unit_count</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fiber_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fibers</span> <span class="o">=</span> <span class="n">PotvinMuscleFiberModel</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">PotvinMotorNeuronPool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_neuron_input</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fiber_output</span> <span class="o">=</span> <span class="n">motor_neuron_input</span> <span class="o">*</span> <span class="mi">2</span>

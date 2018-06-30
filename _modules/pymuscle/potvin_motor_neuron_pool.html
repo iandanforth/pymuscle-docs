@@ -1,0 +1,282 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pymuscle.potvin_motor_neuron_pool &#8212; PyMuscle 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pymuscle.potvin_motor_neuron_pool</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
+<span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="k">import</span> <span class="n">plot</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">ndarray</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="PotvinMotorNeuronPool"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMotorNeuronPool">[docs]</a><span class="k">class</span> <span class="nc">PotvinMotorNeuronPool</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates the motor neuron portion of the motor unit model.</span>
+
+<span class="sd">    The name of each parameter as it appears in Potvin, 2017 is in parentheses.</span>
+<span class="sd">    If a parameter does not appear in the paper but does appear in the</span>
+<span class="sd">    accompanying Matlab code, the variable name from the Matlab code is used in</span>
+<span class="sd">    the parentheses.</span>
+
+<span class="sd">    :param motor_unit_count: Number of motor units in the muscle (n)</span>
+<span class="sd">    :param max_recruitment_threshold:</span>
+<span class="sd">        Max excitation required by a motor unit within the pool before</span>
+<span class="sd">        firing (RR)</span>
+<span class="sd">    :param firing_gain:</span>
+<span class="sd">        The slope of firing rate by excitation above threshold (g)</span>
+<span class="sd">    :param min_firing_rate:</span>
+<span class="sd">        The minimum firing rate for a motor neuron above threshold (minR)</span>
+<span class="sd">    :param max_firing_rate_first_unit:</span>
+<span class="sd">        Max firing rate for the first motor unit (maxR(1))</span>
+<span class="sd">    :param max_firing_rate_last_unit:</span>
+<span class="sd">        Max firing rate for the last motor unit (maxR(last))</span>
+<span class="sd">    :param pre_calc_firing_rates:</span>
+<span class="sd">        Whether to build a dict mapping excitation levels to firing rates for</span>
+<span class="sd">        each motor neuron. This can speed up simulation at the cost of</span>
+<span class="sd">        additional memory.</span>
+<span class="sd">    :param pre_calc_resolution:</span>
+<span class="sd">        Step size for excitation levels to pre-calculate (res)</span>
+<span class="sd">    :param pre_calc_max: Highest excitation value to pre-calculate</span>
+
+<span class="sd">    .. todo::</span>
+<span class="sd">        Correct usage with .step()</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">      from pymuscle import PotvinMotorNeuronPool</span>
+<span class="sd">      motor_unit_count = 60</span>
+<span class="sd">      pool = PotvinMotorNeuronPool(motor_unit_count)</span>
+<span class="sd">      excitation = np.full(motor_unit_count, 10.0)</span>
+<span class="sd">      firing_rates = pool.calc_firing_rates(excitation)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+        <span class="n">max_recruitment_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="n">firing_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">min_firing_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="n">max_firing_rate_first_unit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">35</span><span class="p">,</span>
+        <span class="n">max_firing_rate_last_unit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="n">pre_calc_firing_rates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">pre_calc_resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">pre_calc_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">70.0</span>
+    <span class="p">):</span>
+        <span class="n">motor_unit_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">motor_unit_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Calculate recruitment thresholds for each motor neuron</span>
+        <span class="n">r_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_recruitment_threshold</span><span class="p">)</span>
+        <span class="n">r_exponent</span> <span class="o">=</span> <span class="p">(</span><span class="n">r_log</span> <span class="o">*</span> <span class="p">(</span><span class="n">motor_unit_indices</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">r_exponent</span><span class="p">)</span>
+
+        <span class="c1"># Calculate peak firing rates for each motor neuron</span>
+        <span class="n">firing_rate_range</span> <span class="o">=</span> <span class="n">max_firing_rate_first_unit</span> <span class="o">-</span> <span class="n">max_firing_rate_last_unit</span>
+        <span class="n">first_recruitment_thresh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">recruitment_thresh_range</span> <span class="o">=</span> <span class="n">max_recruitment_threshold</span> <span class="o">-</span> <span class="n">first_recruitment_thresh</span>
+        <span class="n">temp_thresholds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span> <span class="o">-</span> <span class="n">first_recruitment_thresh</span>
+        <span class="n">temp_thresholds</span> <span class="o">/=</span> <span class="n">recruitment_thresh_range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_firing_rates</span> <span class="o">=</span> <span class="n">max_firing_rate_first_unit</span> <span class="o">-</span> <span class="p">(</span><span class="n">firing_rate_range</span> <span class="o">*</span> <span class="n">temp_thresholds</span><span class="p">)</span>
+
+        <span class="c1"># Assign attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_recruitment_threshold</span> <span class="o">=</span> <span class="n">max_recruitment_threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_firing_gain</span> <span class="o">=</span> <span class="n">firing_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_firing_rate</span> <span class="o">=</span> <span class="n">min_firing_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Pre-calculate firing rates for all motor neurons across a range of</span>
+        <span class="c1"># possible excitation levels.</span>
+        <span class="k">if</span> <span class="n">pre_calc_firing_rates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">excitations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
+            <span class="n">all_firing_rates_by_excitation</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">excitation_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">pre_calc_max</span> <span class="o">+</span> <span class="n">pre_calc_resolution</span><span class="p">,</span>
+                <span class="n">pre_calc_resolution</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">excitation_values</span><span class="p">:</span>
+                <span class="n">excitations</span> <span class="o">+=</span> <span class="n">pre_calc_resolution</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_firing_rates</span><span class="p">(</span><span class="n">excitations</span><span class="p">)</span>
+                <span class="n">all_firing_rates_by_excitation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+                <span class="n">all_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_firing_rates_by_excitation</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_array</span><span class="p">):</span>
+                    <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                        <span class="n">x</span><span class="o">=</span><span class="n">excitation_values</span><span class="p">,</span>
+                        <span class="n">y</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+                    <span class="p">)</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                <span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_inner_calc_firing_rates</span><span class="p">(</span>
+        <span class="n">excitations</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">thresholds</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gain</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">min_firing_rate</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">peak_firing_rates</span><span class="p">:</span> <span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+
+        <span class="n">firing_rates</span> <span class="o">=</span> <span class="n">excitations</span> <span class="o">-</span> <span class="n">thresholds</span>
+        <span class="n">firing_rates</span> <span class="o">+=</span> <span class="n">min_firing_rate</span>
+        <span class="n">below_thresh_indices</span> <span class="o">=</span> <span class="n">firing_rates</span> <span class="o">&lt;</span> <span class="n">min_firing_rate</span>
+        <span class="n">firing_rates</span><span class="p">[</span><span class="n">below_thresh_indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">firing_rates</span> <span class="o">*=</span> <span class="n">gain</span>
+
+        <span class="c1"># Check for max values</span>
+        <span class="n">above_peak_indices</span> <span class="o">=</span> <span class="n">firing_rates</span> <span class="o">&gt;</span> <span class="n">peak_firing_rates</span>
+        <span class="n">firing_rates</span><span class="p">[</span><span class="n">above_peak_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_firing_rates</span><span class="p">[</span><span class="n">above_peak_indices</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">firing_rates</span>
+
+<div class="viewcode-block" id="PotvinMotorNeuronPool.calc_firing_rates"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMotorNeuronPool.calc_firing_rates">[docs]</a>    <span class="k">def</span> <span class="nf">calc_firing_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excitations</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates firing rates on a per motor neuron basis for the given</span>
+<span class="sd">        array of excitations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">excitations</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_calc_firing_rates</span><span class="p">(</span>
+            <span class="n">excitations</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_firing_gain</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_min_firing_rate</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_firing_rates</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_calc_motor_neuron_fatigue</span><span class="p">(</span>
+        <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">motor_neuron_intrinsics</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_fatigue</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_output_history</span><span class="p">:</span> <span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_update_motor_neuron_output_history</span><span class="p">(</span>
+        <span class="n">motor_neuron_output_history</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_output</span><span class="p">:</span> <span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">motor_neuron_input</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_intrinsics</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_fatigue</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">motor_neuron_output_history</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="n">motor_neuron_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_motor_neuron_output</span><span class="p">(</span>
+            <span class="n">step_size</span><span class="p">,</span>
+            <span class="n">motor_neuron_intrinsics</span><span class="p">,</span>
+            <span class="n">motor_neuron_fatigue</span><span class="p">,</span>
+            <span class="n">motor_neuron_input</span>
+        <span class="p">)</span>
+        <span class="n">motor_neuron_output_history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_motor_neuron_output_history</span><span class="p">(</span>
+            <span class="n">motor_neuron_output_history</span><span class="p">,</span>
+            <span class="n">motor_neuron_output</span>
+        <span class="p">)</span>
+        <span class="n">motor_neuron_fatigue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_motor_neuron_fatigue</span><span class="p">(</span>
+            <span class="n">step_size</span><span class="p">,</span>
+            <span class="n">motor_neuron_intrinsics</span><span class="p">,</span>
+            <span class="n">motor_neuron_fatigue</span><span class="p">,</span>
+            <span class="n">motor_neuron_output_history</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">motor_neuron_output</span><span class="p">,</span>
+            <span class="n">motor_neuron_output_history</span><span class="p">,</span>
+            <span class="n">motor_neuron_fatigue</span>
+        <span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">120</span>
+    <span class="n">motor_unit_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">motor_unit_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">PotvinMotorNeuronPool</span><span class="p">(</span>
+        <span class="n">motor_unit_count</span><span class="p">,</span>
+        <span class="mi">50</span>
+    <span class="p">)</span>
+
+    <span class="n">excitations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">)</span>
+    <span class="n">firing_rates</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">calc_firing_rates</span><span class="p">(</span><span class="n">excitations</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ian Danforth.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

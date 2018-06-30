@@ -15,6 +15,12 @@ Welcome to PyMuscle's documentation!
 .. autoclass:: Muscle
     :members:
 
+.. autoclass:: PotvinMotorNeuronPool
+    :members:
+
+.. autoclass:: PotvinMuscleFiberModel
+    :members:
+
 Indices and tables
 ==================
 
