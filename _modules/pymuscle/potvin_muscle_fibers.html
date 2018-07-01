@@ -60,14 +60,14 @@
 <span class="sd">    :param contraction_time_range:</span>
 <span class="sd">        The scale between the fastest contraction time and the slowest (rt)</span>
 
-<span class="sd">    .. todo::</span>
-<span class="sd">        Correct usage with .step()</span>
-
 <span class="sd">    Usage::</span>
 
 <span class="sd">      from pymuscle import PotvinMuscleFibers</span>
+
 <span class="sd">      motor_unit_count = 60</span>
 <span class="sd">      fibers = PotvinMuscleFibers(motor_unit_count)</span>
+<span class="sd">      motor_unit_firing_rates = np.rand(motor_unit_count) * 10.0</span>
+<span class="sd">      force = fibers.step(motor_unit_firing_rates)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -164,8 +164,8 @@
         <span class="n">inst_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_inst_forces</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_inst_force</span><span class="p">(</span><span class="n">inst_forces</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_pool_output</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_fiber_force</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">)</span></div>
+<div class="viewcode-block" id="PotvinMuscleFibers.step"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMuscleFibers.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_pool_output</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_fiber_force</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>

@@ -72,16 +72,14 @@
 <span class="sd">        Step size for excitation levels to pre-calculate (res)</span>
 <span class="sd">    :param pre_calc_max: Highest excitation value to pre-calculate</span>
 
-<span class="sd">    .. todo::</span>
-<span class="sd">        Correct usage with .step()</span>
-
 <span class="sd">    Usage::</span>
 
 <span class="sd">      from pymuscle import PotvinMotorNeuronPool</span>
+<span class="sd">      </span>
 <span class="sd">      motor_unit_count = 60</span>
 <span class="sd">      pool = PotvinMotorNeuronPool(motor_unit_count)</span>
 <span class="sd">      excitation = np.full(motor_unit_count, 10.0)</span>
-<span class="sd">      firing_rates = pool.calc_firing_rates(excitation)</span>
+<span class="sd">      firing_rates = pool.step(excitation)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -226,8 +224,8 @@
 
         <span class="k">return</span> <span class="n">firing_rates</span>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_pool_input</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_firing_rates</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">)</span></div>
+<div class="viewcode-block" id="PotvinMotorNeuronPool.step"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMotorNeuronPool.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_pool_input</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_firing_rates</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
