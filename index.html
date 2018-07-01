@@ -38,29 +38,70 @@
 </div>
 <span class="target" id="module-pymuscle"></span><dl class="class">
 <dt id="pymuscle.Muscle">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">Muscle</code><span class="sig-paren">(</span><em>motor_unit_count</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#Muscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Muscle" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">Muscle</code><span class="sig-paren">(</span><em>motor_neuron_pool_model</em>, <em>muscle_fibers_model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#Muscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Muscle" title="Permalink to this definition">¶</a></dt>
 <dd><p>A user-created <a class="reference internal" href="#pymuscle.Muscle" title="pymuscle.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> object.</p>
 <p>Used to simulate the input-output relationship between motor neuron
-excitation and muscle fiber contractile state over time.</p>
+excitation and muscle fibers contractile state over time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>motor_neuron_pool_model</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code>) – The motor neuron pool implementation to use with this muscle.</li>
+<li><strong>muscle_fibers_model</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code>) – The muscle fibers model implementation to use with this muscle.</li>
 <li><strong>motor_unit_count</strong> – How many motor units comprise this muscle.</li>
-<li><strong>history_size</strong> – The window over which we calculate fatigues</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <p>Usage:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">Muscle</span>
-<span class="n">muscle</span> <span class="o">=</span> <span class="n">Muscle</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
-<span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">muscle</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">50</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">Muscle</span><span class="p">,</span> <span class="n">PotvinMuscleFibers</span><span class="p">,</span> <span class="n">PotvinMotorNeuronPool</span>
+
+<span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">muscle</span> <span class="o">=</span> <span class="n">Muscle</span><span class="p">(</span>
+    <span class="n">PotvinMotorNeuronPool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
+    <span class="n">PotvinMuscleFibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">excitation</span> <span class="o">=</span> <span class="mf">32.0</span>
+<span class="n">force</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">excitation</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">50.0</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="method">
+<dt id="pymuscle.Muscle.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_input</em>, <em>step_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#Muscle.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Muscle.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances the muscle model one step.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>motor_pool_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]) – Either a single value or an array of values representing the
+excitatory input to the motor neuron pool for this muscle</li>
+<li><strong>step_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – How far to advance the simulation in time for this step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pymuscle.PotvinMuscle">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscle</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>pre_calc_firing_rates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#PotvinMuscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscle" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thin wrapper around <a class="reference internal" href="#pymuscle.Muscle" title="pymuscle.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> which pre-selects the
+Potvin fiber and motor neuron models.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pymuscle.Model">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">Model</code><a class="reference internal" href="_modules/pymuscle/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base model class from which other models should inherit</p>
 </dd></dl>
 
 <dl class="class">
@@ -105,27 +146,12 @@ additional memory.</li>
 <span class="n">firing_rates</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">calc_firing_rates</span><span class="p">(</span><span class="n">excitation</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="method">
-<dt id="pymuscle.PotvinMotorNeuronPool.calc_firing_rates">
-<code class="descname">calc_firing_rates</code><span class="sig-paren">(</span><em>excitations</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_motor_neuron_pool.html#PotvinMotorNeuronPool.calc_firing_rates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMotorNeuronPool.calc_firing_rates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates firing rates on a per motor neuron basis for the given
-array of excitations.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
-<dt id="pymuscle.PotvinMuscleFiberModel">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscleFiberModel</code><span class="sig-paren">(</span><em>motor_unit_count=120</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_fiber_model.html#PotvinMuscleFiberModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscleFiberModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Encapsulates the muscle fiber portions of the motor unit model.</p>
+<dt id="pymuscle.PotvinMuscleFibers">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscleFibers</code><span class="sig-paren">(</span><em>motor_unit_count=120</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_muscle_fibers.html#PotvinMuscleFibers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscleFibers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encapsulates the muscle fibers portions of the motor unit model.</p>
 <p>The name of each parameter as it appears in Potvin, 2017 is in parentheses.
 If a parameter does not appear in the paper but does appear in the Matlab
 code, the variable name from the Matlab code is in parentheses.</p>
@@ -148,9 +174,9 @@ code, the variable name from the Matlab code is in parentheses.</p>
 <p class="last">Correct usage with .step()</p>
 </div>
 <p>Usage:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">PotvinMuscleFiberModel</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">PotvinMuscleFibers</span>
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
-<span class="n">fibers</span> <span class="o">=</span> <span class="n">PotvinMuscleFiberModel</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
+<span class="n">fibers</span> <span class="o">=</span> <span class="n">PotvinMuscleFibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

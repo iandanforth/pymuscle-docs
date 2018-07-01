@@ -1,0 +1,224 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pymuscle.potvin_muscle_fibers &#8212; PyMuscle 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pymuscle.potvin_muscle_fibers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
+
+<span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="k">import</span> <span class="n">plot</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">ndarray</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+
+<span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">Model</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="PotvinMuscleFibers"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMuscleFibers">[docs]</a><span class="k">class</span> <span class="nc">PotvinMuscleFibers</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates the muscle fibers portions of the motor unit model.</span>
+
+<span class="sd">    The name of each parameter as it appears in Potvin, 2017 is in parentheses.</span>
+<span class="sd">    If a parameter does not appear in the paper but does appear in the Matlab</span>
+<span class="sd">    code, the variable name from the Matlab code is in parentheses.</span>
+
+<span class="sd">    :param motor_unit_count: Number of motor units in the muscle (n)</span>
+<span class="sd">    :param max_twitch_amplitude: Max twitch force within the pool (RP)</span>
+<span class="sd">    :param max_contraction_time:</span>
+<span class="sd">        [milliseconds] Maximum contraction time for a motor unit (tL)</span>
+<span class="sd">    :param contraction_time_range:</span>
+<span class="sd">        The scale between the fastest contraction time and the slowest (rt)</span>
+
+<span class="sd">    .. todo::</span>
+<span class="sd">        Correct usage with .step()</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">      from pymuscle import PotvinMuscleFibers</span>
+<span class="sd">      motor_unit_count = 60</span>
+<span class="sd">      fibers = PotvinMuscleFibers(motor_unit_count)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+        <span class="n">max_twitch_amplitude</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">max_contraction_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span>
+        <span class="n">contraction_time_range</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">max_recruitment_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Assign public attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
+
+        <span class="c1"># Calculate the peak twitch force for each motor unit</span>
+        <span class="n">motor_unit_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">t_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_twitch_amplitude</span><span class="p">)</span>
+        <span class="n">t_exponent</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_log</span> <span class="o">*</span> <span class="p">(</span><span class="n">motor_unit_indices</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">t_exponent</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">motor_unit_indices</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span>
+                <span class="p">)],</span>
+                <span class="n">layout</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Peak Twitch Forces&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;ptf&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the contraction times for each motor unit</span>
+        <span class="c1"># Results in a smooth range from max_contraction_time at the first</span>
+        <span class="c1"># motor unit down to max_contraction_time / contraction_time range</span>
+        <span class="c1"># for the last motor unit</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_twitch_amplitude</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">contraction_time_range</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">=</span> <span class="n">max_contraction_time</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span>
+            <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">,</span>
+            <span class="mi">1</span> <span class="o">/</span> <span class="n">scale</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">motor_unit_indices</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span>
+                <span class="p">)],</span>
+                <span class="n">layout</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Contraction Times (ms)&#39;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;ct&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_normalize_firing_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">firing_rates</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">normalized_forces</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
+        <span class="n">linear_threshold</span> <span class="o">=</span> <span class="mf">0.4</span>  <span class="c1"># Values are non-linear above this value</span>
+        <span class="n">below_thresh_indices</span> <span class="o">=</span> <span class="n">normalized_forces</span> <span class="o">&lt;=</span> <span class="n">linear_threshold</span>
+        <span class="n">above_thresh_indices</span> <span class="o">=</span> <span class="n">normalized_forces</span> <span class="o">&gt;</span> <span class="n">linear_threshold</span>
+        <span class="n">normalized_forces</span><span class="p">[</span><span class="n">below_thresh_indices</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.3</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span>
+            <span class="n">normalized_forces</span><span class="p">[</span><span class="n">above_thresh_indices</span><span class="p">],</span>
+            <span class="mi">3</span>
+        <span class="p">)</span>
+        <span class="n">normalized_forces</span><span class="p">[</span><span class="n">above_thresh_indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">normalized_forces</span>
+
+    <span class="k">def</span> <span class="nf">_calc_inst_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">normalized_force</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scales the normalized forces for each motor unit by their peak </span>
+<span class="sd">        twitch forces</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">normalized_force</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_total_inst_force</span><span class="p">(</span><span class="n">inst_forces</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the sum of all instantaneous forces for the motor units</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">inst_forces</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_calc_total_fiber_force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the total instantaneous force produced by all fibers for</span>
+<span class="sd">        the given instantaneous firing rates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">normalized_firing_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_firing_rates</span><span class="p">(</span><span class="n">firing_rates</span><span class="p">)</span>
+        <span class="n">normalized_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
+        <span class="n">inst_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_inst_forces</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_inst_force</span><span class="p">(</span><span class="n">inst_forces</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motor_pool_output</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_fiber_force</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">fibers</span> <span class="o">=</span> <span class="n">PotvinMuscleFibers</span><span class="p">(</span>
+        <span class="mi">120</span><span class="p">,</span>
+        <span class="mi">100</span><span class="p">,</span>
+        <span class="n">max_contraction_time</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">contraction_time_range</span><span class="o">=</span><span class="mi">5</span>
+    <span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ian Danforth.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
