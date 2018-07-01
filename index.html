@@ -152,7 +152,9 @@ additional memory.</li>
 <dl class="method">
 <dt id="pymuscle.PotvinMotorNeuronPool.step">
 <code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_motor_neuron_pool.html#PotvinMotorNeuronPool.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMotorNeuronPool.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Child classes must implement this method.</p>
+<dd><p>Advance the motor neuron pool simulation one step.</p>
+<p>Returns firing rates on a per motor neuron basis for the given
+array of excitations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -167,7 +169,7 @@ additional memory.</li>
 
 <dl class="class">
 <dt id="pymuscle.PotvinMuscleFibers">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscleFibers</code><span class="sig-paren">(</span><em>motor_unit_count=120</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_muscle_fibers.html#PotvinMuscleFibers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscleFibers" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscleFibers</code><span class="sig-paren">(</span><em>motor_unit_count=120</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em>, <em>fatigue_factor_first_unit=0.000125</em>, <em>fatigability_range=180</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_muscle_fibers.html#PotvinMuscleFibers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscleFibers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encapsulates the muscle fibers portions of the motor unit model.</p>
 <p>The name of each parameter as it appears in Potvin, 2017 is in parentheses.
 If a parameter does not appear in the paper but does appear in the Matlab
@@ -176,7 +178,7 @@ code, the variable name from the Matlab code is in parentheses.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>motor_unit_count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Number of motor units in the muscle (n)</li>
 <li><strong>max_twitch_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Max twitch force within the pool (RP)</li>
 <li><strong>max_contraction_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – [milliseconds] Maximum contraction time for a motor unit (tL)</li>
@@ -184,21 +186,36 @@ code, the variable name from the Matlab code is in parentheses.</p>
 </ul>
 </td>
 </tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Fatigue_factor_first_unit:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">The nominal fatigability of the first motor unit in percent / second</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Fatigability_range:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first last">The scale between the fatigability of the first motor unit and the last</p>
+</td>
+</tr>
 </tbody>
 </table>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">The argument naming isn’t consistent. Sometimes we use ‘max’ and other
+times we use ‘last unit’. Can these be made consistent?</p>
+</div>
 <p>Usage:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">PotvinMuscleFibers</span>
 
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">fibers</span> <span class="o">=</span> <span class="n">PotvinMuscleFibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
-<span class="n">motor_unit_firing_rates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.0</span>
-<span class="n">force</span> <span class="o">=</span> <span class="n">fibers</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">motor_unit_firing_rates</span><span class="p">)</span>
+<span class="n">motor_neuron_firing_rates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.0</span>
+<span class="n">force</span> <span class="o">=</span> <span class="n">fibers</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">motor_neuron_firing_rates</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">
 <dt id="pymuscle.PotvinMuscleFibers.step">
 <code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_output</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_muscle_fibers.html#PotvinMuscleFibers.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscleFibers.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Child classes must implement this method.</p>
+<dd><p>Advance the muscle fibers simulation one step.</p>
+<p>Returns the total instantaneous force produced by all fibers for
+the given input from the motor neuron pool.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
