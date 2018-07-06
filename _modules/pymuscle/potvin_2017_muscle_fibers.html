@@ -1,0 +1,385 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pymuscle.potvin_2017_muscle_fibers &#8212; PyMuscle 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pymuscle.potvin_2017_muscle_fibers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span> <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">ndarray</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+
+<span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">Model</span>
+
+
+<div class="viewcode-block" id="Potvin2017MuscleFibers"><a class="viewcode-back" href="../../index.html#pymuscle.Potvin2017MuscleFibers">[docs]</a><span class="k">class</span> <span class="nc">Potvin2017MuscleFibers</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates the muscle fibers portions of the motor unit model.</span>
+
+<span class="sd">    The name of each parameter as it appears in Potvin, 2017 is in parentheses.</span>
+<span class="sd">    If a parameter does not appear in the paper but does appear in the Matlab</span>
+<span class="sd">    code, the variable name from the Matlab code is in parentheses.</span>
+
+<span class="sd">    :param motor_unit_count: Number of motor units in the muscle (n)</span>
+<span class="sd">    :param max_twitch_amplitude: Max twitch force within the pool (RP)</span>
+<span class="sd">    :param max_contraction_time:</span>
+<span class="sd">        [milliseconds] Maximum contraction time for a motor unit (tL)</span>
+<span class="sd">    :param contraction_time_range:</span>
+<span class="sd">        The scale between the fastest contraction time and the slowest (rt)</span>
+<span class="sd">    :fatigue_factor_first_unit:</span>
+<span class="sd">        The nominal fatigability of the first motor unit in percent / second</span>
+<span class="sd">    :fatigability_range:</span>
+<span class="sd">        The scale between the fatigability of the first motor unit and the last</span>
+<span class="sd">    :contraction_time_change_ratio:</span>
+<span class="sd">        For each percent of force lost during fatigue, what percentage should</span>
+<span class="sd">        contraction increase? Based on Shields et al (1997)</span>
+
+<span class="sd">    .. todo::</span>
+<span class="sd">        The argument naming isn&#39;t consistent. Sometimes we use &#39;max&#39; and other</span>
+<span class="sd">        times we use &#39;last unit&#39;. Can these be made consistent?</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">      from pymuscle import Potvin2017MuscleFibers as Fibers</span>
+
+<span class="sd">      motor_unit_count = 60</span>
+<span class="sd">      fibers = Fibers(motor_unit_count)</span>
+<span class="sd">      motor_neuron_firing_rates = np.rand(motor_unit_count) * 10.0</span>
+<span class="sd">      force = fibers.step(motor_neuron_firing_rates)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+        <span class="n">max_twitch_amplitude</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">max_contraction_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span>
+        <span class="n">contraction_time_range</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">max_recruitment_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="n">fatigue_factor_first_unit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0125</span><span class="p">,</span>
+        <span class="n">max_fatigue_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0225</span><span class="p">,</span>
+        <span class="n">fatigability_range</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">180</span><span class="p">,</span>
+        <span class="n">contraction_time_change_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.379</span><span class="p">,</span>
+        <span class="n">apply_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_peak_twitch_forces</span><span class="p">(</span>
+            <span class="n">motor_unit_count</span><span class="p">,</span>
+            <span class="n">max_twitch_amplitude</span>
+        <span class="p">)</span>
+
+        <span class="c1"># These will change with fatigue.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_contraction_times</span><span class="p">(</span>
+            <span class="n">max_twitch_amplitude</span><span class="p">,</span>
+            <span class="n">max_contraction_time</span><span class="p">,</span>
+            <span class="n">contraction_time_range</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span>
+        <span class="p">)</span>
+
+        <span class="c1"># These will change with fatigue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_contraction_times</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span><span class="p">)</span>
+
+        <span class="c1"># The maximum rates at which motor units will fatigue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_fatigabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_nominal_fatigabilities</span><span class="p">(</span>
+            <span class="n">motor_unit_count</span><span class="p">,</span>
+            <span class="n">fatigability_range</span><span class="p">,</span>
+            <span class="n">max_fatigue_rate</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Assing other non-public attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">=</span> <span class="n">contraction_time_change_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fatigue</span> <span class="o">=</span> <span class="n">apply_fatigue</span>
+
+        <span class="c1"># Assign public attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
+
+    <span class="k">def</span> <span class="nf">_update_fatigue</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">normalized_forces</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates current twitch forces and contraction times.</span>
+
+<span class="sd">        :param normalized_forces:</span>
+<span class="sd">            Array of scaled forces. Used to weight how much fatigue will be</span>
+<span class="sd">            generated in this step.</span>
+<span class="sd">        :param step_size: How far time has advanced in this step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Instantaneous fatigue rate</span>
+        <span class="n">fatigues</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nominal_fatigabilities</span> <span class="o">*</span> <span class="n">normalized_forces</span><span class="p">)</span> <span class="o">*</span> <span class="n">step_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">-=</span> <span class="n">fatigues</span>
+        <span class="c1"># Zero out negative values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_contraction_times</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_apply_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates twitch forces and contraction times.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">_update_contraction_times</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update our current contraction times as a function of our current</span>
+<span class="sd">        force capacity relative to our peak force capacity.</span>
+<span class="sd">        From Eq. (11)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;foo - ct&#39;</span><span class="p">)</span>
+        <span class="n">force_loss_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
+        <span class="n">inc_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">*</span> <span class="n">force_loss_pcts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_contraction_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">*</span> <span class="n">inc_pcts</span>
+
+    <span class="k">def</span> <span class="nf">_calc_ct_increase_percents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_losses</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the percent that contraction times should increase for</span>
+<span class="sd">        a given loss in force.</span>
+
+<span class="sd">        :param force_losses: Percentage decrease in force being produced</span>
+<span class="sd">            by each motor unit</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">*</span> <span class="n">force_losses</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_contraction_times</span><span class="p">(</span>
+        <span class="n">max_twitch_amplitude</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_contraction_time</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">contraction_time_range</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">peak_twitch_forces</span><span class="p">:</span> <span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the contraction times for each motor unit</span>
+<span class="sd">        Results in a smooth range from max_contraction_time at the first</span>
+<span class="sd">        motor unit down to max_contraction_time / contraction_time range</span>
+<span class="sd">        for the last motor unit</span>
+
+<span class="sd">        :param max_twitch_amplitude:</span>
+<span class="sd">            Largest force a motor unit in this muscle can produce.</span>
+<span class="sd">        :param max_contraction_time:</span>
+<span class="sd">            Slowest contraction time for a motor unit in this muscle.</span>
+<span class="sd">        :param contraction_time_range:</span>
+<span class="sd">            The ratio between the slowest and the fastest contraction times</span>
+<span class="sd">            in this muscle.</span>
+<span class="sd">        :param peak_twitch_forces:</span>
+<span class="sd">            An array of all the largest forces that each motor unit can</span>
+<span class="sd">            produce.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Fuglevand 93 version - very slightly different values</span>
+        <span class="c1"># twitch_force_range = peak_twitch_forces[-1] / peak_twitch_forces[0]</span>
+        <span class="c1"># scale = math.log(twitch_force_range, contraction_time_range)</span>
+
+        <span class="c1"># Potvin 2017 version</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_twitch_amplitude</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">contraction_time_range</span><span class="p">)</span>
+
+        <span class="n">mantissa</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">peak_twitch_forces</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">scale</span>
+        <span class="k">return</span> <span class="n">max_contraction_time</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">mantissa</span><span class="p">,</span> <span class="n">exponent</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_peak_twitch_forces</span><span class="p">(</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_twitch_amplitude</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pure function to calculate the peak twitch force for each motor unit.</span>
+
+<span class="sd">        :param motor_unit_count: The number of motor units in the pool.</span>
+<span class="sd">        :param max_twitch_amplitude:</span>
+<span class="sd">            Largest force a motor unit in this muscle can produce.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">motor_unit_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">motor_unit_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">t_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_twitch_amplitude</span><span class="p">)</span>
+        <span class="n">t_exponent</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_log</span> <span class="o">*</span> <span class="p">(</span><span class="n">motor_unit_indices</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">motor_unit_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">t_exponent</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_nominal_fatigabilities</span><span class="p">(</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">fatigability_range</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_fatigue_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">peak_twitch_forces</span><span class="p">:</span> <span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pure function to calculate nominal fatigue factors for each motor unit.</span>
+
+<span class="sd">        Taken more from the matlab code than the paper.</span>
+
+<span class="sd">        :param motor_unit_count: The number of motor units in this muscle.</span>
+<span class="sd">        :param fatigability_range:</span>
+<span class="sd">            The ratio between the maximum fatigue rate of the strongest motor</span>
+<span class="sd">            unit (which fatigues the fastest) and the fatigue rate of the</span>
+<span class="sd">            weakest motor unit.</span>
+<span class="sd">        :param max_fatigue_rate:</span>
+<span class="sd">            Largest percentage drop per unit time of twitch strength for the</span>
+<span class="sd">            strongest motor unit.</span>
+<span class="sd">        :param peak_twitch_forces:</span>
+<span class="sd">            An array of all the largest forces that each motor unit can</span>
+<span class="sd">            produce.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">motor_unit_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">motor_unit_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">f_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fatigability_range</span><span class="p">)</span>
+        <span class="n">motor_unit_fatigue_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">f_log</span> <span class="o">/</span> <span class="p">(</span><span class="n">motor_unit_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">motor_unit_indices</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">fatigue_rates</span> <span class="o">=</span> <span class="n">motor_unit_fatigue_curve</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_fatigue_rate</span> <span class="o">/</span> <span class="n">fatigability_range</span><span class="p">)</span> <span class="o">*</span> <span class="n">peak_twitch_forces</span>
+        <span class="k">return</span> <span class="n">fatigue_rates</span>
+
+    <span class="k">def</span> <span class="nf">_normalize_firing_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the effective impact of a given set of firing rates on</span>
+<span class="sd">        muscle fibers which have diverse contraction times and may be fatigued.</span>
+
+<span class="sd">        :param firing_rates: Should be the result of pool._calc_adapted_firing_rates()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Divide by 1000 here as firing rates are per second where contraction</span>
+        <span class="c1"># times are in milliseconds.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_contraction_times</span> <span class="o">*</span> <span class="p">(</span><span class="n">firing_rates</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate motor unit force, relative to its peak force. Force grows</span>
+<span class="sd">        in a linear fashion up to 0.4 normalized firing rate and then in a</span>
+<span class="sd">        sigmoid curve afterward.</span>
+
+<span class="sd">        :param normalized_firing_rates:</span>
+<span class="sd">            An array of firing rates scaled by the current contraction times</span>
+<span class="sd">            for each motor unit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">normalized_forces</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
+        <span class="n">linear_threshold</span> <span class="o">=</span> <span class="mf">0.4</span>  <span class="c1"># Values are non-linear above this value</span>
+        <span class="n">below_thresh_indices</span> <span class="o">=</span> <span class="n">normalized_forces</span> <span class="o">&lt;=</span> <span class="n">linear_threshold</span>
+        <span class="n">above_thresh_indices</span> <span class="o">=</span> <span class="n">normalized_forces</span> <span class="o">&gt;</span> <span class="n">linear_threshold</span>
+        <span class="c1"># The next two lines are strange and magical</span>
+        <span class="c1"># In the paper they are simplified to *= 0.3</span>
+        <span class="c1"># This is the equivalent of the Matlab code</span>
+        <span class="n">normalized_forces</span><span class="p">[</span><span class="n">below_thresh_indices</span><span class="p">]</span> <span class="o">/=</span> <span class="mf">0.4</span>
+        <span class="n">normalized_forces</span><span class="p">[</span><span class="n">below_thresh_indices</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.4</span> <span class="o">**</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span>
+            <span class="n">normalized_forces</span><span class="p">[</span><span class="n">above_thresh_indices</span><span class="p">],</span>
+            <span class="mi">3</span>
+        <span class="p">)</span>
+        <span class="n">normalized_forces</span><span class="p">[</span><span class="n">above_thresh_indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">normalized_forces</span>
+
+    <span class="k">def</span> <span class="nf">_calc_current_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">normalized_forces</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scales the normalized forces for each motor unit by their current</span>
+<span class="sd">        remaining twitch force capacity.</span>
+
+<span class="sd">        :param normalized_forces: An array of forces scaled between 0 and 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">normalized_forces</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span>
+
+    <span class="k">def</span> <span class="nf">_calc_total_fiber_force</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">firing_rates</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the total instantaneous force produced by all fibers for</span>
+<span class="sd">        the given instantaneous firing rates.</span>
+<span class="sd">        :param firing_rates:</span>
+<span class="sd">            An array of firing rates calculated by a compatible Pool class.</span>
+<span class="sd">        :param step_size: How far time has advanced in this step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">normalized_firing_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_firing_rates</span><span class="p">(</span><span class="n">firing_rates</span><span class="p">)</span>
+        <span class="n">normalized_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
+        <span class="n">current_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_current_forces</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">)</span>
+        <span class="c1"># Apply fatigue as last step</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fatigue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_fatigue</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+
+        <span class="n">total_force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">current_forces</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">total_force</span>
+
+<div class="viewcode-block" id="Potvin2017MuscleFibers.step"><a class="viewcode-back" href="../../index.html#pymuscle.Potvin2017MuscleFibers.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_pool_output</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Advance the muscle fibers simulation one step.</span>
+
+<span class="sd">        Returns the total instantaneous force produced by all fibers for</span>
+<span class="sd">        the given input from the motor neuron pool.</span>
+
+<span class="sd">        :param motor_pool_output:</span>
+<span class="sd">            An array of firing rates calculated by a compatible Pool class.</span>
+<span class="sd">        :param step_size: How far time has advanced in this step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_fiber_force</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ian Danforth.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

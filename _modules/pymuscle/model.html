@@ -33,12 +33,20 @@
           <div class="body" role="main">
             
   <h1>Source code for pymuscle.model</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../index.html#pymuscle.Model">[docs]</a><span></span><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span></span><span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">ndarray</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../index.html#pymuscle.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base model class from which other models should inherit</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
 
-<div class="viewcode-block" id="Model.step"><a class="viewcode-back" href="../../index.html#pymuscle.Model.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.step"><a class="viewcode-back" href="../../index.html#pymuscle.Model.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">step_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Child classes must implement this method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
