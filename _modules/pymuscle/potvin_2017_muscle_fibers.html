@@ -154,7 +154,6 @@
 <span class="sd">        force capacity relative to our peak force capacity.</span>
 <span class="sd">        From Eq. (11)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;foo - ct&#39;</span><span class="p">)</span>
         <span class="n">force_loss_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
         <span class="n">inc_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">*</span> <span class="n">force_loss_pcts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_contraction_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">*</span> <span class="n">inc_pcts</span>

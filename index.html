@@ -57,13 +57,13 @@ excitation and muscle fibers contractile state over time.</p>
 </table>
 <p>Usage:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="p">(</span><span class="n">Muscle</span><span class="p">,</span>
-                      <span class="n">Potvin2017MuscleFibers</span><span class="p">,</span>
-                      <span class="n">Potvin2017MotorNeuronPool</span><span class="p">)</span>
+                      <span class="n">Potvin2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span><span class="p">,</span>
+                      <span class="n">Potvin2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span><span class="p">)</span>
 
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">muscle</span> <span class="o">=</span> <span class="n">Muscle</span><span class="p">(</span>
-    <span class="n">PotvinMotorNeuronPool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
-    <span class="n">PotvinMuscleFibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
+    <span class="n">Pool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
+    <span class="n">Fibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="n">excitation</span> <span class="o">=</span> <span class="mf">32.0</span>
 <span class="n">force</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">excitation</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">50.0</span><span class="p">)</span>
@@ -162,7 +162,8 @@ are larger than this value.</p>
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
 <span class="n">excitation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
-<span class="n">firing_rates</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">excitation</span><span class="p">)</span>
+<span class="n">step_size</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">50.0</span>
+<span class="n">firing_rates</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">excitation</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">

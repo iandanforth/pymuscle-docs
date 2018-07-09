@@ -41,17 +41,6 @@
 <span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">Model</span>
 
 
-<span class="k">class</span> <span class="nc">Space</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">shape</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
-
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="Muscle"><a class="viewcode-back" href="../../index.html#pymuscle.Muscle">[docs]</a><span class="k">class</span> <span class="nc">Muscle</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A user-created :class:`Muscle &lt;Muscle&gt;` object.</span>
@@ -68,13 +57,13 @@
 <span class="sd">    Usage::</span>
 
 <span class="sd">        from pymuscle import (Muscle,</span>
-<span class="sd">                              Potvin2017MuscleFibers,</span>
-<span class="sd">                              Potvin2017MotorNeuronPool)</span>
+<span class="sd">                              Potvin2017MotorNeuronPool as Pool,</span>
+<span class="sd">                              Potvin2017MuscleFibers as Fibers)</span>
 
 <span class="sd">        motor_unit_count = 60</span>
 <span class="sd">        muscle = Muscle(</span>
-<span class="sd">            PotvinMotorNeuronPool(motor_unit_count),</span>
-<span class="sd">            PotvinMuscleFibers(motor_unit_count),</span>
+<span class="sd">            Pool(motor_unit_count),</span>
+<span class="sd">            Fibers(motor_unit_count),</span>
 <span class="sd">        )</span>
 <span class="sd">        excitation = 32.0</span>
 <span class="sd">        force = muscle.step(excitation, 1 / 50.0)</span>
@@ -85,8 +74,15 @@
         <span class="n">motor_neuron_pool_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span>
         <span class="n">muscle_fibers_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="k">assert</span> <span class="n">motor_neuron_pool_model</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">==</span> \
+            <span class="n">muscle_fibers_model</span><span class="o">.</span><span class="n">motor_unit_count</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">motor_neuron_pool_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fibers</span> <span class="o">=</span> <span class="n">muscle_fibers_model</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">motor_unit_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">motor_unit_count</span>
 
 <div class="viewcode-block" id="Muscle.step"><a class="viewcode-back" href="../../index.html#pymuscle.Muscle.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
