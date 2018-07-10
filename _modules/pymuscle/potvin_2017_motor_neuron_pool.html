@@ -97,7 +97,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">max_recruitment_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
         <span class="n">firing_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">min_firing_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
@@ -171,7 +171,6 @@
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">excitation_values</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">resolution_places</span><span class="p">)</span>
-            <span class="n">excitations</span> <span class="o">+=</span> <span class="n">pre_calc_resolution</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_inner_calc_firing_rates</span><span class="p">(</span>
                     <span class="n">excitations</span><span class="p">,</span>
@@ -180,6 +179,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_min_firing_rate</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_peak_firing_rates</span>
             <span class="p">)</span>
+            <span class="n">excitations</span> <span class="o">+=</span> <span class="n">pre_calc_resolution</span>
 
     <span class="k">def</span> <span class="nf">_calc_adapted_firing_rates</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -210,8 +210,6 @@
 <span class="sd">        :param excitations:</span>
 <span class="sd">            Array of excitation levels to use as input to motor neurons.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">excitations</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_recruitment_thresholds</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span><span class="p">:</span>
             <span class="n">excitation</span> <span class="o">=</span> <span class="n">excitations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># TODO - Support variations</span>
             <span class="n">firing_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_firing_rates_by_excitation</span><span class="p">[</span><span class="n">excitation</span><span class="p">]</span>
@@ -370,6 +368,7 @@
 <span class="sd">            Array of excitation levels to use as input to motor neurons.</span>
 <span class="sd">        :param step_size: How far to advance time in this step.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_adapted_firing_rates</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span></div></div>
 </pre></div>
 

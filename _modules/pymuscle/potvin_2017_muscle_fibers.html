@@ -78,7 +78,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">max_twitch_amplitude</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
         <span class="n">max_contraction_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span>
         <span class="n">contraction_time_range</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
@@ -95,7 +95,7 @@
         <span class="p">)</span>
 
         <span class="c1"># These will change with fatigue.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_contraction_times</span><span class="p">(</span>
             <span class="n">max_twitch_amplitude</span><span class="p">,</span>
@@ -121,6 +121,7 @@
 
         <span class="c1"># Assign public attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_forces</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_update_fatigue</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -137,9 +138,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Instantaneous fatigue rate</span>
         <span class="n">fatigues</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nominal_fatigabilities</span> <span class="o">*</span> <span class="n">normalized_forces</span><span class="p">)</span> <span class="o">*</span> <span class="n">step_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">-=</span> <span class="n">fatigues</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">-=</span> <span class="n">fatigues</span>
         <span class="c1"># Zero out negative values</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_contraction_times</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_apply_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -154,19 +155,9 @@
 <span class="sd">        force capacity relative to our peak force capacity.</span>
 <span class="sd">        From Eq. (11)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">force_loss_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
+        <span class="n">force_loss_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_twitch_forces</span><span class="p">)</span>
         <span class="n">inc_pcts</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">*</span> <span class="n">force_loss_pcts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_contraction_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_times</span> <span class="o">*</span> <span class="n">inc_pcts</span>
-
-    <span class="k">def</span> <span class="nf">_calc_ct_increase_percents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_losses</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculates the percent that contraction times should increase for</span>
-<span class="sd">        a given loss in force.</span>
-
-<span class="sd">        :param force_losses: Percentage decrease in force being produced</span>
-<span class="sd">            by each motor unit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">*</span> <span class="n">force_losses</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_contraction_times</span><span class="p">(</span>
@@ -294,9 +285,12 @@
 <span class="sd">        Scales the normalized forces for each motor unit by their current</span>
 <span class="sd">        remaining twitch force capacity.</span>
 
+<span class="sd">        This method also updates the public Muscle.current_forces array.</span>
+
 <span class="sd">        :param normalized_forces: An array of forces scaled between 0 and 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">normalized_forces</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_twitch_forces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_forces</span> <span class="o">=</span> <span class="n">normalized_forces</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_forces</span>
 
     <span class="k">def</span> <span class="nf">_calc_total_fiber_force</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -313,6 +307,7 @@
         <span class="n">normalized_firing_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_firing_rates</span><span class="p">(</span><span class="n">firing_rates</span><span class="p">)</span>
         <span class="n">normalized_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
         <span class="n">current_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_current_forces</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">)</span>
+
         <span class="c1"># Apply fatigue as last step</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fatigue</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_fatigue</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
@@ -335,6 +330,7 @@
 <span class="sd">            An array of firing rates calculated by a compatible Pool class.</span>
 <span class="sd">        :param step_size: How far time has advanced in this step.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_total_fiber_force</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span></div></div>
 </pre></div>
 

@@ -84,6 +84,10 @@
     <span class="k">def</span> <span class="nf">motor_unit_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">motor_unit_count</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fibers</span><span class="o">.</span><span class="n">current_forces</span>
+
 <div class="viewcode-block" id="Muscle.step"><a class="viewcode-back" href="../../index.html#pymuscle.Muscle.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">motor_pool_input</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
@@ -100,7 +104,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Expand a single input to the muscle to a full array</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="nb">isinstance</span><span class="p">(</span><span class="n">motor_pool_input</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">motor_pool_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">motor_unit_count</span><span class="p">,</span>
                 <span class="n">motor_pool_input</span>
