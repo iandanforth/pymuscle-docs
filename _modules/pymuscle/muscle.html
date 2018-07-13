@@ -36,8 +36,8 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">.potvin_2017_muscle_fibers</span> <span class="k">import</span> <span class="n">Potvin2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span>
-<span class="kn">from</span> <span class="nn">.potvin_2017_motor_neuron_pool</span> <span class="k">import</span> <span class="n">Potvin2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_muscle_fibers</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span>
+<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_motor_neuron_pool</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span>
 <span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">Model</span>
 
 
@@ -115,7 +115,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fibers</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">motor_pool_output</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="PotvinMuscle"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinMuscle">[docs]</a><span class="k">class</span> <span class="nc">PotvinMuscle</span><span class="p">(</span><span class="n">Muscle</span><span class="p">):</span>
+<div class="viewcode-block" id="PotvinFuglevandMuscle"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinFuglevandMuscle">[docs]</a><span class="k">class</span> <span class="nc">PotvinFuglevandMuscle</span><span class="p">(</span><span class="n">Muscle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A thin wrapper around :class:`Muscle &lt;Muscle&gt;` which pre-selects the</span>
 <span class="sd">    Potvin fiber and motor neuron models.</span>

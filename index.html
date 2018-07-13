@@ -94,8 +94,8 @@ excitatory input to the motor neuron pool for this muscle</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="pymuscle.PotvinMuscle">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinMuscle</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>apply_fatigue=True</em>, <em>pre_calc_firing_rates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#PotvinMuscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinMuscle" title="Permalink to this definition">¶</a></dt>
+<dt id="pymuscle.PotvinFuglevandMuscle">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinFuglevandMuscle</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>apply_fatigue=True</em>, <em>pre_calc_firing_rates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#PotvinFuglevandMuscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevandMuscle" title="Permalink to this definition">¶</a></dt>
 <dd><p>A thin wrapper around <a class="reference internal" href="#pymuscle.Muscle" title="pymuscle.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> which pre-selects the
 Potvin fiber and motor neuron models.</p>
 </dd></dl>
@@ -113,8 +113,8 @@ Potvin fiber and motor neuron models.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="pymuscle.Potvin2017MotorNeuronPool">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">Potvin2017MotorNeuronPool</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>max_recruitment_threshold=50</em>, <em>firing_gain=1.0</em>, <em>min_firing_rate=8</em>, <em>max_firing_rate_first_unit=35</em>, <em>max_firing_rate_last_unit=25</em>, <em>pre_calc_firing_rates=False</em>, <em>pre_calc_resolution=0.1</em>, <em>pre_calc_max=70.0</em>, <em>derecruitment_delta=2</em>, <em>adaptation_magnitude=0.67</em>, <em>adaptation_time_constant=22.0</em>, <em>max_duration=20000.0</em>, <em>apply_fatigue=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_2017_motor_neuron_pool.html#Potvin2017MotorNeuronPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Potvin2017MotorNeuronPool" title="Permalink to this definition">¶</a></dt>
+<dt id="pymuscle.PotvinFuglevand2017MotorNeuronPool">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinFuglevand2017MotorNeuronPool</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>max_recruitment_threshold=50</em>, <em>firing_gain=1.0</em>, <em>min_firing_rate=8</em>, <em>max_firing_rate_first_unit=35</em>, <em>max_firing_rate_last_unit=25</em>, <em>pre_calc_firing_rates=False</em>, <em>pre_calc_resolution=0.1</em>, <em>pre_calc_max=70.0</em>, <em>derecruitment_delta=2</em>, <em>adaptation_magnitude=0.67</em>, <em>adaptation_time_constant=22.0</em>, <em>max_duration=20000.0</em>, <em>apply_fatigue=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_fuglevand_2017_motor_neuron_pool.html#PotvinFuglevand2017MotorNeuronPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevand2017MotorNeuronPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encapsulates the motor neuron portion of the motor unit model.</p>
 <p>The name of each parameter as it appears in Potvin, 2017 is in parentheses.
 If a parameter does not appear in the paper but does appear in the
@@ -167,8 +167,8 @@ are larger than this value.</p>
 </pre></div>
 </div>
 <dl class="method">
-<dt id="pymuscle.Potvin2017MotorNeuronPool.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_input</em>, <em>step_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_2017_motor_neuron_pool.html#Potvin2017MotorNeuronPool.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Potvin2017MotorNeuronPool.step" title="Permalink to this definition">¶</a></dt>
+<dt id="pymuscle.PotvinFuglevand2017MotorNeuronPool.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_input</em>, <em>step_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_fuglevand_2017_motor_neuron_pool.html#PotvinFuglevand2017MotorNeuronPool.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevand2017MotorNeuronPool.step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advance the motor neuron pool simulation one step.</p>
 <p>Returns firing rates on a per motor neuron basis for the given
 array of excitations. Takes into account fatigue over time.</p>
@@ -192,8 +192,8 @@ array of excitations. Takes into account fatigue over time.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="pymuscle.Potvin2017MuscleFibers">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">Potvin2017MuscleFibers</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em>, <em>fatigue_factor_first_unit=0.0125</em>, <em>max_fatigue_rate=0.0225</em>, <em>fatigability_range=180</em>, <em>contraction_time_change_ratio=0.379</em>, <em>apply_fatigue=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_2017_muscle_fibers.html#Potvin2017MuscleFibers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Potvin2017MuscleFibers" title="Permalink to this definition">¶</a></dt>
+<dt id="pymuscle.PotvinFuglevand2017MuscleFibers">
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinFuglevand2017MuscleFibers</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>max_twitch_amplitude=100</em>, <em>max_contraction_time=90</em>, <em>contraction_time_range=3</em>, <em>max_recruitment_threshold=50</em>, <em>fatigue_factor_first_unit=0.0125</em>, <em>max_fatigue_rate=0.0225</em>, <em>fatigability_range=180</em>, <em>contraction_time_change_ratio=0.379</em>, <em>apply_fatigue=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_fuglevand_2017_muscle_fibers.html#PotvinFuglevand2017MuscleFibers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevand2017MuscleFibers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encapsulates the muscle fibers portions of the motor unit model.</p>
 <p>The name of each parameter as it appears in Potvin, 2017 is in parentheses.
 If a parameter does not appear in the paper but does appear in the Matlab
@@ -240,8 +240,8 @@ times we use ‘last unit’. Can these be made consistent?</p>
 </pre></div>
 </div>
 <dl class="method">
-<dt id="pymuscle.Potvin2017MuscleFibers.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_output</em>, <em>step_size=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_2017_muscle_fibers.html#Potvin2017MuscleFibers.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.Potvin2017MuscleFibers.step" title="Permalink to this definition">¶</a></dt>
+<dt id="pymuscle.PotvinFuglevand2017MuscleFibers.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>motor_pool_output</em>, <em>step_size=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/potvin_fuglevand_2017_muscle_fibers.html#PotvinFuglevand2017MuscleFibers.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevand2017MuscleFibers.step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advance the muscle fibers simulation one step.</p>
 <p>Returns the total instantaneous force produced by all fibers for
 the given input from the motor neuron pool.</p>
