@@ -57,8 +57,8 @@ excitation and muscle fibers contractile state over time.</p>
 </table>
 <p>Usage:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="p">(</span><span class="n">Muscle</span><span class="p">,</span>
-                      <span class="n">Potvin2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span><span class="p">,</span>
-                      <span class="n">Potvin2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span><span class="p">)</span>
+                      <span class="n">PotvinFuglevand2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span><span class="p">,</span>
+                      <span class="n">PotvinFuglevand2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span><span class="p">)</span>
 
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">muscle</span> <span class="o">=</span> <span class="n">Muscle</span><span class="p">(</span>
@@ -157,7 +157,7 @@ This will also require changing how we look up values if they
 are larger than this value.</p>
 </div>
 <p>Usage:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">Potvin2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span>
 
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
@@ -231,7 +231,7 @@ contraction increase? Based on Shields et al (1997)</p>
 times we use ‘last unit’. Can these be made consistent?</p>
 </div>
 <p>Usage:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">Potvin2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymuscle</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span>
 
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">fibers</span> <span class="o">=</span> <span class="n">Fibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
