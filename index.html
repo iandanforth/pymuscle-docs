@@ -95,7 +95,7 @@ excitatory input to the motor neuron pool for this muscle</li>
 
 <dl class="class">
 <dt id="pymuscle.PotvinFuglevandMuscle">
-<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinFuglevandMuscle</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>apply_fatigue=True</em>, <em>pre_calc_firing_rates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#PotvinFuglevandMuscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevandMuscle" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pymuscle.</code><code class="descname">PotvinFuglevandMuscle</code><span class="sig-paren">(</span><em>motor_unit_count</em>, <em>apply_central_fatigue=True</em>, <em>apply_peripheral_fatigue=True</em>, <em>pre_calc_firing_rates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymuscle/muscle.html#PotvinFuglevandMuscle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymuscle.PotvinFuglevandMuscle" title="Permalink to this definition">¶</a></dt>
 <dd><p>A thin wrapper around <a class="reference internal" href="#pymuscle.Muscle" title="pymuscle.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> which pre-selects the
 Potvin fiber and motor neuron models.</p>
 </dd></dl>
@@ -236,7 +236,8 @@ times we use ‘last unit’. Can these be made consistent?</p>
 <span class="n">motor_unit_count</span> <span class="o">=</span> <span class="mi">60</span>
 <span class="n">fibers</span> <span class="o">=</span> <span class="n">Fibers</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span>
 <span class="n">motor_neuron_firing_rates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">motor_unit_count</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.0</span>
-<span class="n">force</span> <span class="o">=</span> <span class="n">fibers</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">motor_neuron_firing_rates</span><span class="p">)</span>
+<span class="n">step_size</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">force</span> <span class="o">=</span> <span class="n">fibers</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">motor_neuron_firing_rates</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">

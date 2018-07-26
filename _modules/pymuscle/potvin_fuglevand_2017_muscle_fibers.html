@@ -74,7 +74,8 @@
 <span class="sd">      motor_unit_count = 60</span>
 <span class="sd">      fibers = Fibers(motor_unit_count)</span>
 <span class="sd">      motor_neuron_firing_rates = np.rand(motor_unit_count) * 10.0</span>
-<span class="sd">      force = fibers.step(motor_neuron_firing_rates)</span>
+<span class="sd">      step_size = 0.01</span>
+<span class="sd">      force = fibers.step(motor_neuron_firing_rates, step_size)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -118,6 +119,7 @@
         <span class="c1"># Assing other non-public attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_contraction_time_change_ratio</span> <span class="o">=</span> <span class="n">contraction_time_change_ratio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fatigue</span> <span class="o">=</span> <span class="n">apply_fatigue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_fatigue_rate</span> <span class="o">=</span> <span class="n">max_fatigue_rate</span>
 
         <span class="c1"># Assign public attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">motor_unit_count</span> <span class="o">=</span> <span class="n">motor_unit_count</span>
@@ -139,15 +141,10 @@
         <span class="c1"># Instantaneous fatigue rate</span>
         <span class="n">fatigues</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nominal_fatigabilities</span> <span class="o">*</span> <span class="n">normalized_forces</span><span class="p">)</span> <span class="o">*</span> <span class="n">step_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">-=</span> <span class="n">fatigues</span>
+
         <span class="c1"># Zero out negative values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_peak_forces</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_contraction_times</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_apply_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Updates twitch forces and contraction times.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span> <span class="nf">_update_contraction_times</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -307,12 +304,12 @@
         <span class="n">normalized_firing_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_firing_rates</span><span class="p">(</span><span class="n">firing_rates</span><span class="p">)</span>
         <span class="n">normalized_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_normalized_forces</span><span class="p">(</span><span class="n">normalized_firing_rates</span><span class="p">)</span>
         <span class="n">current_forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_current_forces</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">)</span>
+        <span class="n">total_force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">current_forces</span><span class="p">)</span>
 
         <span class="c1"># Apply fatigue as last step</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fatigue</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_fatigue</span><span class="p">(</span><span class="n">normalized_forces</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
 
-        <span class="n">total_force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">current_forces</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">total_force</span>
 
 <div class="viewcode-block" id="PotvinFuglevand2017MuscleFibers.step"><a class="viewcode-back" href="../../index.html#pymuscle.PotvinFuglevand2017MuscleFibers.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>

@@ -33,11 +33,16 @@
           <div class="body" role="main">
             
   <h1>Source code for pymuscle.muscle</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains base Muscle class and its immediate descendants.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_muscle_fibers</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MuscleFibers</span> <span class="k">as</span> <span class="n">Fibers</span>
-<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_motor_neuron_pool</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span> <span class="k">as</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_muscle_fibers</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MuscleFibers</span>
+<span class="kn">from</span> <span class="nn">.potvin_fuglevand_2017_motor_neuron_pool</span> <span class="k">import</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span>
+<span class="kn">from</span> <span class="nn">.pymuscle_fibers</span> <span class="k">import</span> <span class="n">PyMuscleFibers</span>
 <span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">Model</span>
 
 
@@ -124,23 +129,60 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">apply_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">apply_central_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">apply_peripheral_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">pre_calc_firing_rates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">):</span>
-        <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span><span class="p">(</span>
             <span class="n">motor_unit_count</span><span class="p">,</span>
-            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_fatigue</span><span class="p">,</span>
+            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_central_fatigue</span><span class="p">,</span>
             <span class="n">pre_calc_firing_rates</span><span class="o">=</span><span class="n">pre_calc_firing_rates</span>
         <span class="p">)</span>
-        <span class="n">fibers</span> <span class="o">=</span> <span class="n">Fibers</span><span class="p">(</span>
+        <span class="n">fibers</span> <span class="o">=</span> <span class="n">PotvinFuglevand2017MuscleFibers</span><span class="p">(</span>
             <span class="n">motor_unit_count</span><span class="p">,</span>
-            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_fatigue</span>
+            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_peripheral_fatigue</span>
         <span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">motor_neuron_pool_model</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
             <span class="n">muscle_fibers_model</span><span class="o">=</span><span class="n">fibers</span>
         <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">StandardMuscle</span><span class="p">(</span><span class="n">Muscle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A thin wrapper around :class:`Muscle &lt;Muscle&gt;` which pre-selects the</span>
+<span class="sd">    Potvin motor neuron model and the PyMuscle specific fiber model.</span>
+
+<span class="sd">    It is expected that this will use a motor neuron model specific to PyMuscle</span>
+<span class="sd">    (to be called the PyMuscleMotorNeuronPool) in the future.</span>
+
+<span class="sd">    This muscle does *not* include central (motor neuron) fatigue as the</span>
+<span class="sd">    equations for recovery are not yet available.</span>
+
+<span class="sd">    This muscle does include both peripheral fatigue and recovery.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">motor_unit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">apply_central_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">apply_peripheral_fatigue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">pre_calc_firing_rates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">PotvinFuglevand2017MotorNeuronPool</span><span class="p">(</span>
+            <span class="n">motor_unit_count</span><span class="p">,</span>
+            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_central_fatigue</span><span class="p">,</span>
+            <span class="n">pre_calc_firing_rates</span><span class="o">=</span><span class="n">pre_calc_firing_rates</span>
+        <span class="p">)</span>
+        <span class="n">fibers</span> <span class="o">=</span> <span class="n">PyMuscleFibers</span><span class="p">(</span>
+            <span class="n">motor_unit_count</span><span class="p">,</span>
+            <span class="n">apply_fatigue</span><span class="o">=</span><span class="n">apply_peripheral_fatigue</span>
+        <span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">motor_neuron_pool_model</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
+            <span class="n">muscle_fibers_model</span><span class="o">=</span><span class="n">fibers</span>
+        <span class="p">)</span>
 </pre></div>
 
           </div>
