@@ -265,6 +265,14 @@ the given input from the motor neuron pool.</p>
 
 </dd></dl>
 
+<span class="target" id="module-pymuscle.hill_type"></span><p>Implementations of equations used in Hill-Type muscle models</p>
+<p>Not all equations for a traditional Hill-Type model are provided here. It is
+expected that passive elements will be modeled by a physics simulator selected
+by PyMuscle users.</p>
+<p>Also it should be noted that these equations do not take pennetation angle
+into account (which is common in Hill-type models). Users should check to
+make sure their physics simulator is handling forces correctly to provide values
+which vary by angle.</p>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
